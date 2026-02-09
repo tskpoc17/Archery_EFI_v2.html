@@ -9,16 +9,34 @@
         body { font-family: -apple-system, sans-serif; background-color: var(--bg); padding: 15px; display: flex; justify-content: center; margin: 0; }
         .container { background: white; width: 100%; max-width: 450px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 20px; box-sizing: border-box; }
         .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { font-size: 22px; color: #333; margin: 0; }
+        
+        .setting-label { font-size: 14px; color: #555; margin-bottom: 8px; font-weight: bold; }
         .section-box { background: #e7f3ff; border-radius: 16px; padding: 15px; margin-bottom: 15px; border-left: 6px solid var(--primary); }
         .section-title { font-weight: bold; color: var(--primary); margin-bottom: 12px; font-size: 15px; }
-        input { width: 100%; padding: 12px; border: 1px solid #dee2e6; border-radius: 10px; font-size: 15px; box-sizing: border-box; }
-        button { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-diag { background: var(--primary); color: white; margin: 15px 0; font-size: 16px; }
+        
+        /* 12格網格排版 */
+        .input-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
+        .input-grid input { width: 100%; padding: 10px 5px; border: 1px solid #dee2e6; border-radius: 8px; font-size: 14px; text-align: center; box-sizing: border-box; }
+        .input-grid input:focus { border-color: var(--primary); outline: none; background: #fff; }
+
+        input[type="number"] { -moz-appearance: textfield; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+        .hint { font-size: 11px; color: #6c757d; margin-top: 5px; }
+        
+        button { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; }
+        .btn-diag { background: var(--primary); color: white; margin-bottom: 20px; }
         .btn-save { background: var(--success); color: white; margin-bottom: 10px; }
-        .history-row { display: flex; gap: 8px; margin-bottom: 15px; }
-        select { flex: 1.5; padding: 10px; border-radius: 10px; border: 1px solid #ddd; }
-        .analysis-box { background: #fff4e6; border-radius: 16px; padding: 18px; border: 1px solid #ffe8cc; font-size: 14px; line-height: 1.6; }
-        .result-card { background: #fff; border-radius: 15px; padding: 15px; border: 1px solid #eef2f7; margin-top: 10px; }
+        
+        .history-row { display: flex; gap: 8px; margin-bottom: 20px; }
+        select { flex: 1.5; padding: 12px; border-radius: 12px; border: 1px solid #ddd; background: white; }
+        .btn-load { flex: 0.8; background: #6f42c1; color: white; }
+        .btn-del { flex: 0.6; background: var(--danger); color: white; }
+
+        .analysis-box { background: #fff4e6; border-radius: 18px; padding: 20px; border: 1px solid #ffe8cc; font-size: 15px; line-height: 1.6; }
+        .result-card { background: #fff; border-radius: 16px; padding: 15px; border: 1px solid #eef2f7; margin-top: 10px; }
+        .res-val { font-size: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -26,50 +44,71 @@
 <div class="container">
     <div class="header"><h1>🎯 EFI 雙軸診斷系統</h1></div>
 
-    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-        <input type="number" id="kValue" value="1" placeholder="K值" style="flex: 1;">
+    <div style="margin-bottom: 20px;">
+        <div class="setting-label">⚙️ 距離換算 K 值設定</div>
+        <input type="number" id="kValue" value="1" step="0.1" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd;">
     </div>
 
     <div class="section-box">
-        <div class="section-title">⚖️ X 軸水平座標分值</div>
-        <input type="text" id="rawX" placeholder="輸入座標，如：2,1,-1,-3">
+        <div class="section-title">⚖️ X 軸水平座標 (12 箭)</div>
+        <div class="input-grid" id="gridX">
+            </div>
+        <div class="hint">右正 (+) / 左負 (-)</div>
     </div>
 
     <div class="section-box" style="background: #f0f7ff; border-left-color: #28a745;">
-        <div class="section-title" style="color: #28a745;">↕️ Y 軸垂直座標分值</div>
-        <input type="text" id="rawY" placeholder="輸入座標，如：3,0.5,-2,-4">
+        <div class="section-title" style="color: #28a745;">↕️ Y 軸垂直座標 (12 箭)</div>
+        <div class="input-grid" id="gridY">
+            </div>
+        <div class="hint" style="color: #28a745;">上正 (+) / 下負 (-)</div>
     </div>
 
     <button class="btn-diag" onclick="runDiag()">執行雙軸數據診斷</button>
 
-    <button id="p_save" class="btn-save">🕒 儲存數據與時間</button>
+    <button id="p_save" class="btn-save">🕒 儲存當前數據與時間</button>
     <div class="history-row">
-        <select id="p_list"></select>
-        <button onclick="loadRecord()" style="flex:0.8; background:#6f42c1; color:white;">載入</button>
-        <button onclick="delRecord()" style="flex:0.6; background:var(--danger); color:white;">刪除</button>
+        <select id="p_list"><option value="">-- 歷史紀錄 --</option></select>
+        <button class="btn-load" onclick="loadRecord()">載入</button>
+        <button class="btn-del" onclick="delRecord()">刪除</button>
     </div>
 
     <div class="analysis-box">
         <strong>💡 綜合分析建議</strong><br>
-        <div id="summaryText">請點擊診斷。</div>
-        <div id="diagTime" style="font-size: 12px; color: #888; margin-top: 8px;"></div>
+        <div id="summaryText">請填寫座標後點擊診斷。</div>
+        <div id="diagTime" style="font-size: 12px; color: #888; margin-top: 10px;"></div>
     </div>
     
     <div class="result-card" id="resX" style="display: none;">
-        <div id="resultX" style="font-size: 18px; font-weight: bold; color: var(--primary);"></div>
+        <div id="resultX" class="res-val" style="color: var(--primary);"></div>
     </div>
     <div class="result-card" id="resY" style="display: none;">
-        <div id="resultY" style="font-size: 18px; font-weight: bold; color: var(--success);"></div>
+        <div id="resultY" class="res-val" style="color: var(--success);"></div>
     </div>
 </div>
 
 <script>
-const KEY = 'archery_final_formula';
+const KEY = 'archery_efi_grid_v4';
+
+// 初始化生成 12 個格子的函數
+function createGrid(containerId) {
+    const container = document.getElementById(containerId);
+    for (let i = 0; i < 12; i++) {
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.step = '0.1';
+        input.placeholder = (i + 1);
+        input.className = containerId + '-input';
+        container.appendChild(input);
+    }
+}
+
+createGrid('gridX');
+createGrid('gridY');
 
 function refreshList() {
     const list = document.getElementById('p_list');
     const data = JSON.parse(localStorage.getItem(KEY) || '{}');
-    list.innerHTML = '<option value="">-- 紀錄 --</option>';
+    list.innerHTML = '<option value="">-- 歷史紀錄 --</option>';
     Object.keys(data).sort().reverse().forEach(t => {
         const opt = document.createElement('option');
         opt.value = t; opt.innerText = t; list.appendChild(opt);
@@ -79,19 +118,26 @@ function refreshList() {
 document.getElementById('p_save').onclick = () => {
     const now = new Date();
     const time = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
-    const vals = { x: document.getElementById('rawX').value, y: document.getElementById('rawY').value, k: document.getElementById('kValue').value };
+    const getVals = (cls) => Array.from(document.getElementsByClassName(cls)).map(i => i.value);
     const history = JSON.parse(localStorage.getItem(KEY) || '{}');
-    history[time] = vals;
+    history[time] = { x: getVals('gridX-input'), y: getVals('gridY-input'), k: document.getElementById('kValue').value };
     localStorage.setItem(KEY, JSON.stringify(history));
     refreshList(); alert('✅ 存檔成功');
 };
 
 function loadRecord() {
     const d = JSON.parse(localStorage.getItem(KEY) || '{}')[document.getElementById('p_list').value];
-    if (d) { document.getElementById('rawX').value = d.x; document.getElementById('rawY').value = d.y; document.getElementById('kValue').value = d.k; }
+    if (d) {
+        const xInputs = document.getElementsByClassName('gridX-input');
+        const yInputs = document.getElementsByClassName('gridY-input');
+        d.x.forEach((v, i) => xInputs[i].value = v);
+        d.y.forEach((v, i) => yInputs[i].value = v);
+        document.getElementById('kValue').value = d.k;
+    }
 }
 
 function delRecord() {
+    if(!confirm("確定刪除？")) return;
     const history = JSON.parse(localStorage.getItem(KEY) || '{}');
     delete history[document.getElementById('p_list').value];
     localStorage.setItem(KEY, JSON.stringify(history));
@@ -101,8 +147,10 @@ function delRecord() {
 function runDiag() {
     const k = parseFloat(document.getElementById('kValue').value) || 1;
 
-    const calc = (id) => {
-        const raw = document.getElementById(id).value.split(',').map(Number).filter(n => !isNaN(n));
+    const calc = (cls) => {
+        const raw = Array.from(document.getElementsByClassName(cls))
+                         .map(i => parseFloat(i.value))
+                         .filter(n => !isNaN(n));
         if (raw.length === 0) return 11;
 
         const right = raw.filter(n => n >= 0);
@@ -116,15 +164,14 @@ function runDiag() {
         const madR = getMAD(right, avgR);
         const madL = getMAD(left, avgL);
 
-        // 套用你的公式：11 - K * [(Avg右 - Avg左) + (NR*MADR + NL*MADL)/(NR+NL)]
+        // 核心公式：11 - K * [(Avg右 - Avg左) + (NR*MADR + NL*MADL)/(NR+NL)]
         const weightedMAD = ( (right.length * madR) + (left.length * madL) ) / raw.length;
-        const efi = 11 - k * ( (avgR - avgL) + weightedMAD );
-        
+        const efi = 11 - k * ( (avgR - avgL) + (weightedMAD || 0) );
         return efi;
     };
 
-    const efiX = calc('rawX');
-    const efiY = calc('rawY');
+    const efiX = calc('gridX-input');
+    const efiY = calc('gridY-input');
 
     document.getElementById('resX').style.display = 'block';
     document.getElementById('resY').style.display = 'block';
@@ -133,7 +180,6 @@ function runDiag() {
 
     const now = new Date();
     document.getElementById('diagTime').innerText = `🕒 診斷時間：${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
-    document.getElementById('summaryText').innerText = "診斷完成。";
 }
 
 window.onload = refreshList;
