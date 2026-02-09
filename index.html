@@ -15,28 +15,24 @@
         .section-box { background: #e7f3ff; border-radius: 16px; padding: 15px; margin-bottom: 15px; border-left: 6px solid var(--primary); }
         .section-title { font-weight: bold; color: var(--primary); margin-bottom: 12px; font-size: 15px; }
         
-        /* 12格網格排版 */
         .input-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
         .input-grid input { width: 100%; padding: 10px 5px; border: 1px solid #dee2e6; border-radius: 8px; font-size: 14px; text-align: center; box-sizing: border-box; }
-        .input-grid input:focus { border-color: var(--primary); outline: none; background: #fff; }
 
-        input[type="number"] { -moz-appearance: textfield; }
-        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-
-        .hint { font-size: 11px; color: #6c757d; margin-top: 5px; }
-        
         button { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; }
-        .btn-diag { background: var(--primary); color: white; margin-bottom: 20px; }
+        .btn-diag { background: var(--primary); color: white; margin-bottom: 15px; }
         .btn-save { background: var(--success); color: white; margin-bottom: 10px; }
         
-        .history-row { display: flex; gap: 8px; margin-bottom: 20px; }
+        .history-row { display: flex; gap: 8px; margin-bottom: 15px; }
         select { flex: 1.5; padding: 12px; border-radius: 12px; border: 1px solid #ddd; background: white; }
-        .btn-load { flex: 0.8; background: #6f42c1; color: white; }
-        .btn-del { flex: 0.6; background: var(--danger); color: white; }
+        .btn-load { flex: 0.8; background: #6f42c1; color: white; font-size: 14px; }
+        .btn-del { flex: 0.6; background: var(--danger); color: white; font-size: 14px; }
 
-        .analysis-box { background: #fff4e6; border-radius: 18px; padding: 20px; border: 1px solid #ffe8cc; font-size: 15px; line-height: 1.6; }
-        .result-card { background: #fff; border-radius: 16px; padding: 15px; border: 1px solid #eef2f7; margin-top: 10px; }
-        .res-val { font-size: 20px; font-weight: bold; }
+        .analysis-box { background: #fff4e6; border-radius: 18px; padding: 20px; border: 1px solid #ffe8cc; font-size: 15px; line-height: 1.6; margin-bottom: 15px; }
+        
+        /* 修正：把結果顯示區加回來 */
+        .result-card { background: #f8f9ff; border-radius: 16px; padding: 15px; border: 1px solid #eef2f7; margin-top: 10px; display: none; }
+        .res-title { font-size: 14px; color: #666; margin-bottom: 5px; }
+        .res-val { font-size: 22px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -51,16 +47,12 @@
 
     <div class="section-box">
         <div class="section-title">⚖️ X 軸水平座標 (12 箭)</div>
-        <div class="input-grid" id="gridX">
-            </div>
-        <div class="hint">右正 (+) / 左負 (-)</div>
+        <div class="input-grid" id="gridX"></div>
     </div>
 
     <div class="section-box" style="background: #f0f7ff; border-left-color: #28a745;">
         <div class="section-title" style="color: #28a745;">↕️ Y 軸垂直座標 (12 箭)</div>
-        <div class="input-grid" id="gridY">
-            </div>
-        <div class="hint" style="color: #28a745;">上正 (+) / 下負 (-)</div>
+        <div class="input-grid" id="gridY"></div>
     </div>
 
     <button class="btn-diag" onclick="runDiag()">執行雙軸數據診斷</button>
@@ -78,32 +70,30 @@
         <div id="diagTime" style="font-size: 12px; color: #888; margin-top: 10px;"></div>
     </div>
     
-    <div class="result-card" id="resX" style="display: none;">
+    <div class="result-card" id="resX_box">
+        <div class="res-title">📊 水平診斷報告</div>
         <div id="resultX" class="res-val" style="color: var(--primary);"></div>
     </div>
-    <div class="result-card" id="resY" style="display: none;">
+    <div class="result-card" id="resY_box">
+        <div class="res-title">📊 垂直診斷報告</div>
         <div id="resultY" class="res-val" style="color: var(--success);"></div>
     </div>
 </div>
 
 <script>
-const KEY = 'archery_efi_grid_v4';
+const KEY = 'archery_efi_grid_final';
 
-// 初始化生成 12 個格子的函數
 function createGrid(containerId) {
     const container = document.getElementById(containerId);
     for (let i = 0; i < 12; i++) {
         const input = document.createElement('input');
-        input.type = 'number';
-        input.step = '0.1';
+        input.type = 'number'; input.step = '0.1';
         input.placeholder = (i + 1);
         input.className = containerId + '-input';
         container.appendChild(input);
     }
 }
-
-createGrid('gridX');
-createGrid('gridY');
+createGrid('gridX'); createGrid('gridY');
 
 function refreshList() {
     const list = document.getElementById('p_list');
@@ -122,7 +112,7 @@ document.getElementById('p_save').onclick = () => {
     const history = JSON.parse(localStorage.getItem(KEY) || '{}');
     history[time] = { x: getVals('gridX-input'), y: getVals('gridY-input'), k: document.getElementById('kValue').value };
     localStorage.setItem(KEY, JSON.stringify(history));
-    refreshList(); alert('✅ 存檔成功');
+    refreshList(); alert('✅ 已存檔');
 };
 
 function loadRecord() {
@@ -148,9 +138,7 @@ function runDiag() {
     const k = parseFloat(document.getElementById('kValue').value) || 1;
 
     const calc = (cls) => {
-        const raw = Array.from(document.getElementsByClassName(cls))
-                         .map(i => parseFloat(i.value))
-                         .filter(n => !isNaN(n));
+        const raw = Array.from(document.getElementsByClassName(cls)).map(i => parseFloat(i.value)).filter(n => !isNaN(n));
         if (raw.length === 0) return 11;
 
         const right = raw.filter(n => n >= 0);
@@ -164,22 +152,22 @@ function runDiag() {
         const madR = getMAD(right, avgR);
         const madL = getMAD(left, avgL);
 
-        // 核心公式：11 - K * [(Avg右 - Avg左) + (NR*MADR + NL*MADL)/(NR+NL)]
         const weightedMAD = ( (right.length * madR) + (left.length * madL) ) / raw.length;
-        const efi = 11 - k * ( (avgR - avgL) + (weightedMAD || 0) );
-        return efi;
+        return 11 - k * ( (avgR - avgL) + (weightedMAD || 0) );
     };
 
     const efiX = calc('gridX-input');
     const efiY = calc('gridY-input');
 
-    document.getElementById('resX').style.display = 'block';
-    document.getElementById('resY').style.display = 'block';
+    // 顯示結果
+    document.getElementById('resX_box').style.display = 'block';
+    document.getElementById('resY_box').style.display = 'block';
     document.getElementById('resultX').innerText = `EFI-X: ${efiX.toFixed(4)}`;
     document.getElementById('resultY').innerText = `EFI-Y: ${efiY.toFixed(4)}`;
 
     const now = new Date();
     document.getElementById('diagTime').innerText = `🕒 診斷時間：${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+    document.getElementById('summaryText').innerText = "診斷分析完成。";
 }
 
 window.onload = refreshList;
