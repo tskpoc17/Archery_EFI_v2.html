@@ -5,163 +5,138 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EFI 射箭雙軸診斷系統</title>
     <style>
-        :root { --primary: #007bff; --success: #28a745; --warning: #ffc107; --danger: #dc3545; --bg: #f8f9fa; }
-        body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); padding: 15px; display: flex; justify-content: center; }
-        .container { background: white; width: 100%; max-width: 500px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 25px; }
-        .header { text-align: center; margin-bottom: 25px; }
-        .header h1 { font-size: 24px; color: #333; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .section-box { background: #e7f3ff; border-radius: 12px; padding: 15px; margin-bottom: 20px; border-left: 5px solid var(--primary); }
-        .section-title { font-weight: bold; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-        .input-row { display: flex; gap: 10px; margin-bottom: 10px; }
-        input { flex: 1; padding: 12px; border: 1px solid #dee2e6; border-radius: 10px; font-size: 16px; }
-        .hint { font-size: 12px; color: #6c757d; margin-top: -5px; margin-bottom: 10px; }
-        button { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; }
-        .btn-diag { background: var(--primary); color: white; margin-bottom: 20px; }
-        .btn-diag:active { transform: scale(0.98); }
-        .result-card { background: #fff; border-radius: 15px; padding: 15px; border: 1px solid #eef2f7; margin-bottom: 15px; }
-        .analysis-box { background: #fff4e6; border-radius: 12px; padding: 15px; border: 1px solid #ffe8cc; font-size: 14px; line-height: 1.6; }
+        :root { --primary: #007bff; --success: #28a745; --danger: #dc3545; --bg: #f8f9fa; }
+        body { font-family: -apple-system, sans-serif; background-color: var(--bg); padding: 15px; display: flex; justify-content: center; margin: 0; }
+        .container { background: white; width: 100%; max-width: 450px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 20px; box-sizing: border-box; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .section-box { background: #e7f3ff; border-radius: 16px; padding: 15px; margin-bottom: 15px; border-left: 6px solid var(--primary); }
+        .section-title { font-weight: bold; color: var(--primary); margin-bottom: 12px; font-size: 15px; }
+        input { width: 100%; padding: 12px; border: 1px solid #dee2e6; border-radius: 10px; font-size: 15px; box-sizing: border-box; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-diag { background: var(--primary); color: white; margin: 15px 0; font-size: 16px; }
+        .btn-save { background: var(--success); color: white; margin-bottom: 10px; }
+        .history-row { display: flex; gap: 8px; margin-bottom: 15px; }
+        select { flex: 1.5; padding: 10px; border-radius: 10px; border: 1px solid #ddd; }
+        .analysis-box { background: #fff4e6; border-radius: 16px; padding: 18px; border: 1px solid #ffe8cc; font-size: 14px; line-height: 1.6; }
+        .result-card { background: #fff; border-radius: 15px; padding: 15px; border: 1px solid #eef2f7; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header">
-        <h1>🎯 EFI 射箭雙軸診斷系統</h1>
-    </div>
+    <div class="header"><h1>🎯 EFI 雙軸診斷系統</h1></div>
 
-    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-        <select id="targetType" style="flex: 1.5; padding: 10px; border-radius: 10px; border: 1px solid #ddd;">
-            <option>80cm (30/50公尺)</option>
-            <option>122cm (70/90公尺)</option>
-        </select>
-        <input type="number" id="kValue" value="1" placeholder="K值" style="flex: 0.5;">
+    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <input type="number" id="kValue" value="1" placeholder="K值" style="flex: 1;">
     </div>
 
     <div class="section-box">
         <div class="section-title">⚖️ X 軸水平座標分值</div>
-        <div class="input-row">
-            <input type="number" id="pxE" placeholder="右左差平均" step="0.1">
-            <input type="number" id="pxM" placeholder="離差平均" step="0.1">
-        </div>
-        <input type="number" id="inX" placeholder="輸入樣本支數 (N)" style="margin-bottom: 5px;">
-        <div class="hint">右側為正 (+)，左側為負 (-)</div>
+        <input type="text" id="rawX" placeholder="輸入座標，如：2,1,-1,-3">
     </div>
 
     <div class="section-box" style="background: #f0f7ff; border-left-color: #28a745;">
         <div class="section-title" style="color: #28a745;">↕️ Y 軸垂直座標分值</div>
-        <div class="input-row">
-            <input type="number" id="pyE" placeholder="上下差平均" step="0.1">
-            <input type="number" id="pyM" placeholder="離差平均" step="0.1">
-        </div>
-        <input type="number" id="inY" placeholder="輸入樣本支數 (N)" style="margin-bottom: 5px;">
-        <div class="hint">上方為正 (+)，下方為負 (-)</div>
+        <input type="text" id="rawY" placeholder="輸入座標，如：3,0.5,-2,-4">
     </div>
 
     <button class="btn-diag" onclick="runDiag()">執行雙軸數據診斷</button>
 
-    <div class="analysis-box">
-        <strong>💡 綜合分析建議</strong><br>
-        <div id="summaryText">請輸入數據並點擊診斷。</div>
-        <div id="diagTime" style="font-size: 12px; color: #888; margin-top: 10px; display: flex; align-items: center; gap: 5px;"></div>
-    </div>
-    
-    <div class="result-card" id="resX" style="margin-top: 15px; display: none;">
-        <div style="font-size: 14px; color: #666;">📈 X 軸分析報告</div>
-        <div id="resultX" style="font-size: 20px; font-weight: bold; color: var(--primary); margin: 5px 0;"></div>
-    </div>
-    
-    <div class="result-card" id="resY" style="display: none;">
-        <div style="font-size: 14px; color: #666;">📈 Y 軸分析報告</div>
-        <div id="resultY" style="font-size: 20px; font-weight: bold; color: var(--success); margin: 5px 0;"></div>
+    <button id="p_save" class="btn-save">🕒 儲存數據與時間</button>
+    <div class="history-row">
+        <select id="p_list"></select>
+        <button onclick="loadRecord()" style="flex:0.8; background:#6f42c1; color:white;">載入</button>
+        <button onclick="delRecord()" style="flex:0.6; background:var(--danger); color:white;">刪除</button>
     </div>
 
+    <div class="analysis-box">
+        <strong>💡 綜合分析建議</strong><br>
+        <div id="summaryText">請點擊診斷。</div>
+        <div id="diagTime" style="font-size: 12px; color: #888; margin-top: 8px;"></div>
+    </div>
+    
+    <div class="result-card" id="resX" style="display: none;">
+        <div id="resultX" style="font-size: 18px; font-weight: bold; color: var(--primary);"></div>
+    </div>
+    <div class="result-card" id="resY" style="display: none;">
+        <div id="resultY" style="font-size: 18px; font-weight: bold; color: var(--success);"></div>
+    </div>
 </div>
 
 <script>
-(function() {
-    const STORAGE_KEY = 'archery_data_v2';
+const KEY = 'archery_final_formula';
 
-    // 1. 建立儲存 UI 插件
-    window.addEventListener('load', function() {
-        const diagBtn = document.querySelector('.btn-diag');
-        const saveUI = document.createElement('div');
-        saveUI.style = "margin-top: -10px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;";
-        saveUI.innerHTML = `
-            <button id="p_save" style="background: var(--success); color: white;">🕒 儲存當前數據與時間</button>
-            <div style="display: flex; gap: 5px;">
-                <select id="p_list" style="flex: 1; border-radius: 10px; border: 1px solid #ddd;"></select>
-                <button id="p_load" style="flex: 0.6; background: #6f42c1; color: white; padding: 10px;">載入</button>
-                <button id="p_del" style="flex: 0.4; background: var(--danger); color: white; padding: 10px;">刪除</button>
-            </div>
-        `;
-        diagBtn.parentNode.insertBefore(saveUI, diagBtn.nextSibling);
-
-        const list = document.getElementById('p_list');
-        const refresh = () => {
-            const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-            list.innerHTML = '<option value="">-- 歷史紀錄 --</option>';
-            Object.keys(history).sort().reverse().forEach(t => {
-                const opt = document.createElement('option');
-                opt.value = t; opt.innerText = t; list.appendChild(opt);
-            });
-        };
-
-        document.getElementById('p_save').onclick = () => {
-            const now = new Date();
-            const time = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
-            const data = { pxE: document.getElementById('pxE').value, pxM: document.getElementById('pxM').value, inX: document.getElementById('inX').value, pyE: document.getElementById('pyE').value, pyM: document.getElementById('pyM').value, inY: document.getElementById('inY').value, k: document.getElementById('kValue').value };
-            const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-            history[time] = data;
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-            refresh(); alert('數據已存於 ' + time);
-        };
-
-        document.getElementById('p_load').onclick = () => {
-            const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-            const d = history[list.value];
-            if (d) {
-                document.getElementById('pxE').value = d.pxE; document.getElementById('pxM').value = d.pxM; document.getElementById('inX').value = d.inX;
-                document.getElementById('pyE').value = d.pyE; document.getElementById('pyM').value = d.pyM; document.getElementById('inY').value = d.inY;
-                document.getElementById('kValue').value = d.k;
-            }
-        };
-
-        document.getElementById('p_del').onclick = () => {
-            const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-            delete history[list.value];
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-            refresh();
-        };
-
-        refresh();
-
-        // 2. 置換核心公式：11 - K * (Gap + MAD)
-        window.runDiag = function() {
-            const pxE = parseFloat(document.getElementById('pxE').value) || 0;
-            const pxM = parseFloat(document.getElementById('pxM').value) || 0;
-            const pyE = parseFloat(document.getElementById('pyE').value) || 0;
-            const pyM = parseFloat(document.getElementById('pyM').value) || 0;
-            const k = parseFloat(document.getElementById('kValue').value) || 1;
-
-            const efiX = 11 - k * (Math.abs(pxE) + pxM);
-            const efiY = 11 - k * (Math.abs(pyE) + pyM);
-
-            document.getElementById('resX').style.display = 'block';
-            document.getElementById('resY').style.display = 'block';
-            document.getElementById('resultX').innerText = `EFI: ${efiX.toFixed(4)}`;
-            document.getElementById('resultY').innerText = `EFI: ${efiY.toFixed(4)}`;
-
-            const now = new Date();
-            document.getElementById('diagTime').innerHTML = `🕒 診斷時間：${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
-            
-            let advice = "分析建議：\n";
-            if (efiX < 7 || efiY < 7) advice += "⚠️ 離散風險較高，建議檢查發力穩定性。";
-            else advice += "✅ 動作一致性良好，請維持節奏。";
-            document.getElementById('summaryText').innerText = advice;
-        };
+function refreshList() {
+    const list = document.getElementById('p_list');
+    const data = JSON.parse(localStorage.getItem(KEY) || '{}');
+    list.innerHTML = '<option value="">-- 紀錄 --</option>';
+    Object.keys(data).sort().reverse().forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t; opt.innerText = t; list.appendChild(opt);
     });
-})();
-</script>
+}
 
+document.getElementById('p_save').onclick = () => {
+    const now = new Date();
+    const time = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+    const vals = { x: document.getElementById('rawX').value, y: document.getElementById('rawY').value, k: document.getElementById('kValue').value };
+    const history = JSON.parse(localStorage.getItem(KEY) || '{}');
+    history[time] = vals;
+    localStorage.setItem(KEY, JSON.stringify(history));
+    refreshList(); alert('✅ 存檔成功');
+};
+
+function loadRecord() {
+    const d = JSON.parse(localStorage.getItem(KEY) || '{}')[document.getElementById('p_list').value];
+    if (d) { document.getElementById('rawX').value = d.x; document.getElementById('rawY').value = d.y; document.getElementById('kValue').value = d.k; }
+}
+
+function delRecord() {
+    const history = JSON.parse(localStorage.getItem(KEY) || '{}');
+    delete history[document.getElementById('p_list').value];
+    localStorage.setItem(KEY, JSON.stringify(history));
+    refreshList();
+}
+
+function runDiag() {
+    const k = parseFloat(document.getElementById('kValue').value) || 1;
+
+    const calc = (id) => {
+        const raw = document.getElementById(id).value.split(',').map(Number).filter(n => !isNaN(n));
+        if (raw.length === 0) return 11;
+
+        const right = raw.filter(n => n >= 0);
+        const left = raw.filter(n => n < 0);
+
+        const getAvg = (arr) => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
+        const getMAD = (arr, avg) => arr.length ? arr.reduce((a,b)=>a+Math.abs(b-avg),0)/arr.length : 0;
+
+        const avgR = getAvg(right);
+        const avgL = getAvg(left);
+        const madR = getMAD(right, avgR);
+        const madL = getMAD(left, avgL);
+
+        // 套用你的公式：11 - K * [(Avg右 - Avg左) + (NR*MADR + NL*MADL)/(NR+NL)]
+        const weightedMAD = ( (right.length * madR) + (left.length * madL) ) / raw.length;
+        const efi = 11 - k * ( (avgR - avgL) + weightedMAD );
+        
+        return efi;
+    };
+
+    const efiX = calc('rawX');
+    const efiY = calc('rawY');
+
+    document.getElementById('resX').style.display = 'block';
+    document.getElementById('resY').style.display = 'block';
+    document.getElementById('resultX').innerText = `EFI-X: ${efiX.toFixed(4)}`;
+    document.getElementById('resultY').innerText = `EFI-Y: ${efiY.toFixed(4)}`;
+
+    const now = new Date();
+    document.getElementById('diagTime').innerText = `🕒 診斷時間：${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+    document.getElementById('summaryText').innerText = "診斷完成。";
+}
+
+window.onload = refreshList;
+</script>
 </body>
 </html>
