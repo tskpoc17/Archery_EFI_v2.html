@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>射箭雙軸數據診斷 App</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; background: #f0f2f5; padding: 15px; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 15px; }
+        h2 { color: #1c1e21; font-size: 1.2rem; margin-top: 0; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-size: 14px; color: #606770; margin-bottom: 5px; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .primary-btn { background: #007bff; color: white; font-size: 16px; }
+        .result-box { background: #fff9db; padding: 15px; border-radius: 10px; border: 1px solid #ffe066; }
+        .summary-block { margin-top: 15px; font-size: 14px; line-height: 1.6; }
+        .footer-text { font-size: 12px; color: #888; margin-top: 10px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>🎯 雙軸數據輸入</h2>
+    <div class="input-group">
+        <label>水平平均差 (pxE) / 右側為正 (+)，左側為負 (-)</label>
+        <input type="number" id="pxE" placeholder="例如: 1.5 (代表偏右1格)" step="0.1">
+    </div>
+    <div class="input-group">
+        <label>水平平均離差 (pxM)</label>
+        <input type="number" id="pxM" placeholder="例如: 0.8" step="0.1">
+    </div>
+    <div class="input-group">
+        <label>水平樣本數 (支數)</label>
+        <input type="number" id="inX" placeholder="例如: 6">
+    </div>
+    <hr>
+    <div class="input-group">
+        <label>垂直平均差 (pyE) / 上方為正 (+)，下方為負 (-)</label>
+        <input type="number" id="pyE" placeholder="例如: -1.0 (代表偏下1格)" step="0.1">
+    </div>
+    <div class="input-group">
+        <label>垂直平均離差 (pyM)</label>
+        <input type="number" id="pyM" placeholder="例如: 0.5" step="0.1">
+    </div>
+    <div class="input-group">
+        <label>垂直樣本數 (支數)</label>
+        <input type="number" id="inY" placeholder="例如: 6">
+    </div>
+    <div class="input-group">
+        <label>距離係數 (kValue)</label>
+        <input type="number" id="kValue" value="0.1" step="0.01">
+    </div>
+    
+    <button class="primary-btn" onclick="runDiag()">執行雙軸數據診斷</button>
+</div>
+
+<div class="card result-box">
+    <h2>📊 診斷結果</h2>
+    <div id="resultX" style="font-weight: bold; color: #007bff;">水平效率 (EFI-X): --</div>
+    <div id="resultY" style="font-weight: bold; color: #28a745;">垂直效率 (EFI-Y): --</div>
+    <div class="summary-block">
+        <strong>綜合分析建議：</strong>
+        <div id="summaryText">請輸入數據並點擊診斷。</div>
+    </div>
+</div>
+
+<div class="footer-text">提示：此版本使用「環數距離」作為計算單位</div>
+
+<script>
+// --- 原本的 runDiag 函數 (保留結構，但內容會被下方外掛置換) ---
+function runDiag() {
+    console.log("Original logic triggered");
+}
+
+// --- 🔌 核心外掛：公式置換 + 紀錄管理 + 時間戳記 ---
+(function() {
+    const STORAGE_KEY = 'archery_history_list_v2';
+
+    window.addEventListener('load', function() {
+        const mainBtn = document.querySelector('button[onclick="runDiag()"]');
+        if (!mainBtn) return;
+
+        // 1. 建立 UI：歷史紀錄管理
+        const pluginContainer = document.createElement('div');
+        pluginContainer.style = "margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid #ddd;";
+        pluginContainer.innerHTML = `
+            <div style="font-weight:bold; font-size:14px; margin-bottom:10px; color:#555;">💾 歷史紀錄管理 (環數單位模式)</div>
+            <button id="p_btnSave" style="width:100%; height:48px; background:#28a745; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; margin-bottom:12px; font-size:16px; display:flex; align-items:center; justify-content:center;">🕒 以當前時間儲存數據</button>
+            <div style="display:flex; gap:8px; align-items: center;">
+                <select id="p_recordSelect" style="flex:1.2; padding:0 10px; border-radius:8px; border:1px solid #ccc; height:48px; font-size:14px; background:white;"></select>
+                <button id="p_btnLoad" style="flex:2; height:48px; background:#6f42c1; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:15px; display:flex; align-items:center; justify-content:center;">載入紀錄</button>
+                <button id="p_btnDel" style="width:55px; height:48px; background:#dc3545; color:white; border:none; border-radius:8px; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center;">刪除</button>
+            </div>
+        `;
+        mainBtn.parentNode.insertBefore(pluginContainer, mainBtn.nextSibling);
+
+        const recordSelect = document.getElementById('p_recordSelect');
+        const updateDropdown = () => {
+            const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            recordSelect.innerHTML = '<option value="">紀錄</option>';
+            Object.keys(history).sort().reverse().forEach(time => {
+                const opt = document.createElement('option');
+                opt.value = time; opt.innerText = time;
+                recordSelect.appendChild(opt);
+            });
+        };
+
+        // 儲存、載入、刪除邏輯
+        document.getElementById('p_btnSave').onclick = () => {
+            const now = new Date();
+            const timeKey = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+            const data = {
+                pxE: document.getElementById('pxE').value, pxM: document.getElementById('pxM').value, inX: document.getElementById('inX').value,
+                pyE: document.getElementById('pyE').value, pyM: document.getElementById('pyM').value, inY: document.getElementById('inY').value,
+                k: document.getElementById('kValue').value
+            };
+            const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            history[timeKey] = data;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+            updateDropdown(); alert('✅ 已儲存歷史紀錄');
+        };
+
+        document.getElementById('p_btnLoad').onclick = () => {
+            const d = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')[recordSelect.value];
+            if (d) {
+                document.getElementById('pxE').value = d.pxE; document.getElementById('pxM').value = d.pxM; document.getElementById('inX').value = d.inX;
+                document.getElementById('pyE').value = d.pyE; document.getElementById('pyM').value = d.pyM; document.getElementById('inY').value = d.inY;
+                document.getElementById('kValue').value = d.k; alert('📂 載入成功');
+            }
+        };
+
+        document.getElementById('p_btnDel').onclick = () => {
+            if (!recordSelect.value || !confirm('確定刪除此紀錄？')) return;
+            const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            delete history[recordSelect.value];
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+            updateDropdown();
+        };
+
+        updateDropdown();
+
+        // 2. 公式置換邏輯 (EFI = 11 - K * [Gap + MAD])
+        window.runDiag = function() {
+            const pxE = parseFloat(document.getElementById('pxE').value) || 0;
+            const pxM = parseFloat(document.getElementById('pxM').value) || 0;
+            const pyE = parseFloat(document.getElementById('pyE').value) || 0;
+            const pyM = parseFloat(document.getElementById('pyM').value) || 0;
+            const k = parseFloat(document.getElementById('kValue').value) || 0.1;
+
+            // 新公式：評估兩極偏差與一致性
+            const efiX = 11 - k * (Math.abs(pxE) + pxM);
+            const efiY = 11 - k * (Math.abs(pyE) + pyM);
+
+            document.getElementById('resultX').innerText = `水平效率 (EFI-X): ${efiX.toFixed(2)}`;
+            document.getElementById('resultY').innerText = `垂直效率 (EFI-Y): ${efiY.toFixed(2)}`;
+
+            const summaryText = document.getElementById('summaryText');
+            if(summaryText) {
+                let diag = "基於靶面分數之診斷分析：\n";
+                if (efiX >= 9 && efiY >= 9) diag += "🎯 表現極其優異，動作極度穩定。";
+                else if (efiX < 7 || efiY < 7) diag += "⚠️ 動作一致性有待加強，請注意極端落點。";
+                else diag += "✅ 表現正常，建議微調瞄具補償中心偏差。";
+                
+                const now = new Date();
+                diag += `\n\n🕒 診斷時間：${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+                summaryText.innerText = diag;
+            }
+        };
+    });
+})();
+</script>
+
+</body>
+</html>
