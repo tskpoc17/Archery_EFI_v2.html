@@ -1,164 +1,199 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EFI 射箭雙軸診斷系統</title>
     <style>
-        :root { --primary: #007bff; --success: #28a745; --danger: #dc3545; --bg: #f8f9fa; }
-        body { font-family: -apple-system, sans-serif; background-color: var(--bg); padding: 15px; display: flex; justify-content: center; margin: 0; }
-        .container { background: white; width: 100%; max-width: 450px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 20px; box-sizing: border-box; }
-        .header { text-align: center; margin-bottom: 20px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; margin: 0; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 480px; }
+        h2 { text-align: center; color: #333; margin-top: 0; }
+        .section-title { background: #e7f3ff; padding: 10px 15px; border-radius: 8px; font-weight: bold; color: #007AFF; margin: 20px 0 10px 0; border-left: 5px solid #007AFF; }
+        label { font-weight: bold; font-size: 14px; color: #333; display: block; margin-top: 12px; margin-bottom: 5px; }
+        .row { display: flex; gap: 8px; margin-bottom: 5px; }
+        .row > div { flex: 1; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; background-color: #fff; }
         
         /* 12格外掛樣式 */
-        .grid-12 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
-        .grid-12 input { width: 100%; padding: 10px 5px; border: 1px solid #dee2e6; border-radius: 8px; font-size: 14px; text-align: center; box-sizing: border-box; }
+        .grid-12 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+        .grid-12 input { padding: 10px 5px; text-align: center; font-size: 14px; border-radius: 8px; }
 
-        .section-box { border-radius: 16px; padding: 15px; margin-bottom: 15px; border-left: 6px solid var(--primary); background: #f8fbff; }
-        .section-title { font-weight: bold; color: var(--primary); margin-bottom: 10px; font-size: 15px; }
-        
-        button { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-bottom: 10px; transition: 0.2s; }
-        .btn-diag { background: var(--primary); color: white; }
-        .btn-save { background: var(--success); color: white; }
-        .history-row { display: flex; gap: 8px; margin-bottom: 15px; }
-        
-        .analysis-box { background: #fff4e6; border-radius: 18px; padding: 20px; border: 1px solid #ffe8cc; font-size: 15px; line-height: 1.6; }
-        .result-card { background: #f8f9ff; border-radius: 16px; padding: 15px; border: 1px solid #eef2f7; margin-top: 10px; }
+        .note { font-size: 12px; color: #777; background-color: #f8f9fa; padding: 8px; border-radius: 8px; margin-top: 4px; line-height: 1.4; }
+        button { width: 100%; padding: 16px; background: #007AFF; color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 25px; }
+        .res-container { display: none; margin-top: 25px; }
+        .res-block { padding: 18px; background: #f0f9ff; border-radius: 15px; border: 1px solid #bce0fd; margin-bottom: 20px; }
+        .summary-block { padding: 18px; background: #fff4e5; border-radius: 15px; border: 1px solid #ffe2b3; margin-bottom: 20px; }
+        .stat-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #d1e9ff; font-size: 14px; align-items: center; }
+        .stat-value { font-weight: bold; text-align: right; color: #333; }
+        .efi-val { color: #007AFF; font-size: 24px; font-weight: 900; }
+        .trend-up { color: #28a745; font-weight: bold; }
+        .trend-down { color: #dc3545; font-weight: bold; }
     </style>
 </head>
 <body>
+<div class="card">
+    <h2>🎯 EFI 射箭雙軸診斷系統</h2>
 
-<div class="container">
-    <div class="header"><h1>🎯 EFI 雙軸診斷系統</h1></div>
-
-    <div style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
-        <span style="font-weight: bold; font-size: 14px;">K 值：</span>
-        <input type="number" id="kValue" value="1" step="0.1" style="flex:1; padding:10px; border-radius:10px; border:1px solid #ddd;">
+    <label>🎯 距離推估係數 K 值設定</label>
+    <div class="row">
+        <input type="number" id="kValue" value="1" step="0.1" placeholder="K值">
     </div>
 
-    <div class="section-box">
-        <div class="section-title">⚖️ X 軸水平座標 (12 箭)</div>
-        <div class="grid-12" id="gridX"></div>
+    <div class="section-title">⚖️ X 軸水平座標 (12 箭)</div>
+    <div class="row">
+        <input type="number" id="pxE" step="0.0001" placeholder="前次 EFI">
+        <input type="number" id="pxM" step="0.01" placeholder="前次離差">
     </div>
+    <div class="grid-12" id="gridX"></div>
+    <div class="note">右側為正 (+)，左側為負 (-)</div>
 
-    <div class="section-box" style="background: #f0f7ff; border-left-color: var(--success);">
-        <div class="section-title" style="color: var(--success);">↕️ Y 軸垂直座標 (12 箭)</div>
-        <div class="grid-12" id="gridY"></div>
+    <div class="section-title">↕️ Y 軸垂直座標 (12 箭)</div>
+    <div class="row">
+        <input type="number" id="pyE" step="0.0001" placeholder="前次 EFI">
+        <input type="number" id="pyM" step="0.01" placeholder="前次離差">
     </div>
+    <div class="grid-12" id="gridY"></div>
+    <div class="note">上方為正 (+)，下方為負 (-)</div>
 
-    <button class="btn-diag" onclick="runDiag()">執行雙軸數據診斷</button>
+    <button onclick="runDiag()">執行雙軸數據診斷</button>
 
-    <button id="p_save" class="btn-save">🕒 儲存當前數據與時間</button>
-    <div class="history-row">
-        <select id="p_list" style="flex:2; padding:10px; border-radius:10px;"><option value="">-- 歷史紀錄 --</option></select>
-        <button onclick="loadRecord()" style="flex:1; background:#6f42c1; color:white; border-radius:10px;">載入</button>
-        <button onclick="delRecord()" style="flex:0.8; background:#dc3545; color:white; border-radius:10px;">刪除</button>
+    <div id="out" class="res-container">
+        <div id="summary" class="summary-block">
+            <div style="font-weight:bold; color:#e67e22; margin-bottom:8px;">💡 綜合分析建議</div>
+            <div id="summaryText" style="font-size:15px; line-height:1.5; color:#5d4037; white-space: pre-wrap;"></div>
+        </div>
+
+        <div class="res-block">
+            <div style="font-weight:bold; color:#007AFF; margin-bottom:12px;">📊 X 軸水平分析報告</div>
+            <div class="stat-item"><span>本次 EFI 指標</span><span id="rxE" class="efi-val"></span></div>
+            <div id="cxE" class="stat-item" style="display:none;"><span>EFI 趨勢</span><span id="dxE" class="stat-value"></span></div>
+            <div class="stat-item"><span>中心偏移平均</span><span id="offX" class="stat-value"></span></div>
+            <div class="stat-item"><span>動作一致性 (離差)</span><span id="madX" class="stat-value"></span></div>
+            <div id="cxM" class="stat-item" style="display:none;"><span>一致性趨勢</span><span id="dxM" class="stat-value"></span></div>
+            <div class="stat-item"><span>樣本誤差機率</span><span id="prX" class="stat-value"></span></div>
+        </div>
+
+        <div class="res-block">
+            <div style="font-weight:bold; color:#007AFF; margin-bottom:12px;">📊 Y 軸垂直分析報告</div>
+            <div class="stat-item"><span>本次 EFI 指標</span><span id="ryE" class="efi-val"></span></div>
+            <div id="cyE" class="stat-item" style="display:none;"><span>EFI 趨勢</span><span id="dyE" class="stat-value"></span></div>
+            <div class="stat-item"><span>中心偏移平均</span><span id="offY" class="stat-value"></span></div>
+            <div class="stat-item"><span>動作一致性 (離差)</span><span id="madY" class="stat-value"></span></div>
+            <div id="cyM" class="stat-item" style="display:none;"><span>一致性趨勢</span><span id="dyM" class="stat-value"></span></div>
+            <div class="stat-item"><span>樣本誤差機率</span><span id="prY" class="stat-value"></span></div>
+        </div>
     </div>
-
-    <div class="analysis-box">
-        <strong>💡 綜合分析建議</strong><br>
-        <div id="summaryText">請填寫座標後點擊診斷。</div>
-        <div id="adviceContent" style="margin-top: 10px;"></div>
-        <div id="diagTime" style="font-size: 12px; color: #888; margin-top: 10px;"></div>
-    </div>
-
-    <div class="result-card"><div id="resultX" style="color: var(--primary); font-weight:bold; font-size:18px;">EFI-X: --</div></div>
-    <div class="result-card"><div id="resultY" style="color: var(--success); font-weight:bold; font-size:18px;">EFI-Y: --</div></div>
 </div>
 
 <script>
 // 初始化 12 格
-function init() {
+(function init() {
     const gx = document.getElementById('gridX'), gy = document.getElementById('gridY');
     for (let i = 0; i < 12; i++) {
-        gx.innerHTML += `<input type="number" step="0.1" class="x-in" placeholder="${i+1}">`;
-        gy.innerHTML += `<input type="number" step="0.1" class="y-in" placeholder="${i+1}">`;
+        gx.innerHTML += `<input type="number" step="0.1" class="xin" placeholder="${i+1}">`;
+        gy.innerHTML += `<input type="number" step="0.1" class="yin" placeholder="${i+1}">`;
     }
-}
-init();
+})();
 
-// --- 核心新公式運算邏輯 ---
-function runDiag() {
-    const k = parseFloat(document.getElementById('kValue').value) || 1;
-    const getVals = (cls) => Array.from(document.getElementsByClassName(cls)).map(i => parseFloat(i.value)).filter(n => !isNaN(n));
+// --- 外掛新公式邏輯 ---
+function coreCalc(raw, k) {
+    const right = raw.filter(v => v >= 0), left = raw.filter(v => v < 0);
+    const getAvg = (a) => a.length ? a.reduce((p, c) => p + c, 0) / a.length : 0;
+    const getMAD = (a, avg) => a.length ? a.reduce((p, c) => p + Math.abs(c - avg), 0) / a.length : 0;
     
-    const xData = getVals('x-in'), yData = getVals('y-in');
+    const aR = getAvg(right), aL = getAvg(left);
+    const mR = getMAD(right, aR), mL = getMAD(left, aL);
+    
+    const weightedMAD = ((right.length * mR) + (left.length * mL)) / raw.length;
+    // 公式: 11 - K * [ (Avg右 - Avg左) + 加權離差 ]
+    const efi = parseFloat((11 - k * ((aR - aL) + (weightedMAD || 0))).toFixed(4));
+    
+    return { efi, mad: weightedMAD, avg: getAvg(raw), nR: right.length, nL: left.length, mR, mL };
+}
 
-    const calculateNewEFI = (data) => {
-        if (!data.length) return { efi: 11, avgR: 0, avgL: 0 };
-        
-        const right = data.filter(n => n >= 0);
-        const left = data.filter(n => n < 0);
+function runDiag() {
+    const k = parseFloat(document.getElementById('kValue').value);
+    const getInputs = (cls) => Array.from(document.getElementsByClassName(cls)).map(i => parseFloat(i.value)).filter(n => !isNaN(n));
+    
+    const xData = getInputs('xin'), yData = getInputs('yin');
+    if (xData.length < 1 || yData.length < 1) return alert("請輸入數據");
 
-        const getAvg = (arr) => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
-        const getMAD = (arr, avg) => arr.length ? arr.reduce((acc,v)=>acc+Math.abs(v-avg),0)/arr.length : 0;
+    document.getElementById('out').style.display = 'block';
+    const resX = coreCalc(xData, k), resY = coreCalc(yData, k);
 
-        const avgR = getAvg(right);
-        const avgL = getAvg(left); // 這裡包含負號
-        const madR = getMAD(right, avgR);
-        const madL = getMAD(left, avgL);
+    // 完全維持你原始的 UI 顯示對接
+    document.getElementById('rxE').innerText = resX.efi;
+    document.getElementById('offX').innerText = `${resX.avg.toFixed(2)} cm ${resX.avg < 0 ? "(偏左)" : "(偏右)"}`;
+    document.getElementById('madX').innerText = resX.mad.toFixed(2);
+    document.getElementById('prX').innerText = `${(( (resX.mR >= resX.mL ? resX.nR : resX.nL) /xData.length)*100).toFixed(0)}% (${resX.mR >= resX.mL ? '右側' : '左側'})`;
 
-        // 新公式：11 - K * [ (Avg右 - Avg左) + (NR*MADR + NL*MADL)/N總 ]
-        // 注意：Avg右 - Avg左 會自動變成相加 (例如 2 - (-2) = 4)
-        const weightedMAD = ((right.length * madR) + (left.length * madL)) / data.length;
-        const efi = 11 - k * ((avgR - avgL) + (weightedMAD || 0));
-        
-        return { efi, avgR, avgL };
+    document.getElementById('ryE').innerText = resY.efi;
+    document.getElementById('offY').innerText = `${resY.avg.toFixed(2)} cm ${resY.avg < 0 ? "(偏下)" : "(偏上)"}`;
+    document.getElementById('madY').innerText = resY.mad.toFixed(2);
+    document.getElementById('prY').innerText = `${(( (resY.mR >= resY.mL ? resY.nR : resY.nL) /yData.length)*100).toFixed(0)}% (${resY.mR >= resY.mL ? '上側' : '下側'})`;
+
+    // 趨勢比較 (不動)
+    const compare = (curE, prevE, idRow, idVal) => {
+        if(!isNaN(prevE) && document.getElementById(idRow)) {
+            document.getElementById(idRow).style.display = 'flex';
+            const df = curE - prevE;
+            document.getElementById(idVal).innerHTML = df>=0 ? `<span class="trend-up">↑ 提升 ${df.toFixed(4)}</span>` : `<span class="trend-down">↓ 下降 ${Math.abs(df).toFixed(4)}</span>`;
+        }
     };
+    compare(resX.efi, parseFloat(document.getElementById('pxE').value), 'cxE', 'dxE');
+    compare(resY.efi, parseFloat(document.getElementById('pyE').value), 'cyE', 'dyE');
 
-    const resX = calculateNewEFI(xData), resY = calculateNewEFI(yData);
-
-    // 顯示 EFI
-    document.getElementById('resultX').innerText = `EFI-X: ${resX.efi.toFixed(4)}`;
-    document.getElementById('resultY').innerText = `EFI-Y: ${resY.efi.toFixed(4)}`;
-
-    // 分析建議文字 (保留你原本的診斷邏輯)
-    let advice = "";
-    if (resY.efi < 8.5) advice += "⚠️ **垂直穩定度警示**：垂直 EFI 低於 8.5，建議檢查靠弦點一致性。<br>";
-    if (resX.efi < 8.5) advice += "⚠️ **水平穩定度警示**：水平 EFI 低於 8.5，建議檢查放箭動能與後肘。<br>";
-    advice += `🛠️ **瞄準器調整方向**：建議向 ${resX.avgR + resX.avgL > 0 ? '右' : '左'} 且向 ${resY.avgR + resY.avgL > 0 ? '上' : '下'} 微調。`;
-
-    document.getElementById('summaryText').innerText = "診斷分析完成。";
-    document.getElementById('adviceContent').innerHTML = advice;
-    document.getElementById('diagTime').innerText = "🕒 診斷時間：" + new Date().toLocaleString();
+    // 建議文字 (不動，僅修正微調方向)
+    let summary = resX.efi < resY.efi ? "⚠️ 注意 X 軸 (水平)：較低。" : (resY.efi < resX.efi ? "⚠️ 注意 Y 軸 (垂直)：較低。" : "✅ 雙軸平衡。");
+    summary += `\n\n🛠️ **瞄準器方向微調建議**：\n請將瞄準器向【${resX.avg < 0 ? "左" : "右"}】且向【${resY.avg < 0 ? "下" : "上"}】撥動。`;
+    document.getElementById('summaryText').innerText = summary;
 }
+</script>
 
-// 歷史紀錄管理 (與 12 格對接)
-const KEY = 'Archery_EFI_v2_Stable';
-document.getElementById('p_save').onclick = () => {
-    const data = JSON.parse(localStorage.getItem(KEY) || '{}');
-    const time = new Date().toLocaleString();
-    data[time] = { 
-        x: Array.from(document.getElementsByClassName('x-in')).map(i => i.value),
-        y: Array.from(document.getElementsByClassName('y-in')).map(i => i.value),
-        k: document.getElementById('kValue').value
-    };
-    localStorage.setItem(KEY, JSON.stringify(data));
-    loadRecords(); alert('✅ 數據已成功存檔');
-};
+<script>
+(function() {
+    const STORAGE_KEY = 'archery_history_v12';
+    window.addEventListener('load', function() {
+        const mainBtn = document.querySelector('button[onclick="runDiag()"]');
+        const pluginContainer = document.createElement('div');
+        pluginContainer.style = "margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid #ddd;";
+        pluginContainer.innerHTML = `
+            <button id="p_btnSave" style="width:100%; height:48px; background:#28a745; color:white; border:none; border-radius:10px; font-weight:bold; margin-bottom:12px;">🕒 儲存當前紀錄</button>
+            <div style="display:flex; gap:8px;"><select id="p_recordSelect" style="flex:1.2; height:48px;"></select><button id="p_btnLoad" style="flex:1; background:#6f42c1; color:white; border:none; border-radius:8px;">載入</button></div>
+        `;
+        mainBtn.parentNode.insertBefore(pluginContainer, mainBtn.nextSibling);
+        
+        const recordSelect = document.getElementById('p_recordSelect');
+        const updateDropdown = () => {
+            const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            recordSelect.innerHTML = '<option value="">紀錄</option>';
+            Object.keys(history).sort().reverse().forEach(t => recordSelect.innerHTML += `<option value="${t}">${t}</option>`);
+        };
 
-function loadRecords() {
-    const list = document.getElementById('p_list'), data = JSON.parse(localStorage.getItem(KEY) || '{}');
-    list.innerHTML = '<option value="">-- 歷史紀錄 --</option>';
-    Object.keys(data).reverse().forEach(t => list.innerHTML += `<option value="${t}">${t}</option>`);
-}
-function loadRecord() {
-    const d = JSON.parse(localStorage.getItem(KEY) || '{}')[document.getElementById('p_list').value];
-    if (d) {
-        const xi = document.getElementsByClassName('x-in'), yi = document.getElementsByClassName('y-in');
-        d.x.forEach((v, i) => xi[i].value = v); 
-        d.y.forEach((v, i) => yi[i].value = v);
-        document.getElementById('kValue').value = d.k;
-    }
-}
-function delRecord() {
-    if(!confirm("確定刪除？")) return;
-    const data = JSON.parse(localStorage.getItem(KEY) || '{}');
-    delete data[document.getElementById('p_list').value];
-    localStorage.setItem(KEY, JSON.stringify(data));
-    loadRecords();
-}
-window.onload = loadRecords;
+        document.getElementById('p_btnSave').onclick = function() {
+            const timeKey = new Date().toLocaleString();
+            const currentData = {
+                x: Array.from(document.getElementsByClassName('xin')).map(i => i.value),
+                y: Array.from(document.getElementsByClassName('yin')).map(i => i.value),
+                k: document.getElementById('kValue').value
+            };
+            const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            history[timeKey] = currentData;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+            updateDropdown(); alert('已儲存');
+        };
+
+        document.getElementById('p_btnLoad').onclick = function() {
+            const d = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')[recordSelect.value];
+            if (d) {
+                const xi = document.getElementsByClassName('xin'), yi = document.getElementsByClassName('yin');
+                d.x.forEach((v, i) => xi[i].value = v); d.y.forEach((v, i) => yi[i].value = v);
+                document.getElementById('kValue').value = d.k;
+            }
+        };
+        updateDropdown();
+    });
+})();
 </script>
 </body>
 </html>
